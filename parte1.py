@@ -17,22 +17,24 @@ A primeira linha informa o numero de vertices do grafo.
 Cada linha subsequente informa as arestas. Um exemplo de um grafo e seu respectivo arquivo
 '''
 def processarArquivoEntrada(arquivoentrada):
-    f = open(arquivoentrada, "r")
-    nvertices=f.readline() # primeira linha
-    arestas=[]
-    while(1):
-        line = f.readline()
-        if (line != ''):
-            line=line.replace('\n',"")
-            line=line.replace('\r',"")
-            aresta=line.split(" ", 1)
-            aresta=[int(aresta[0])-1,int(aresta[1])-1]
-            #print(aresta)
-            arestas.append(aresta)
-        else:   
-            break
-        f.close()   
-    return arestas
+        f = open(arquivoentrada, "r")
+        nvertices=f.readline() # primeira linha
+        vertices=np.zeros(int(nvertices))
+        arestas=[]
+        print(vertices)
+        while(1):
+                line = f.readline()
+                if (line != ''):
+                        line=line.replace('\n',"")
+                        line=line.replace('\r',"")
+                        aresta=line.split(" ", 1)
+                        aresta=[int(aresta[0])-1,int(aresta[1])-1]
+                        print(aresta)
+                        arestas.append(aresta)
+                else:
+                        break
+        f.close()
+        return [arestas,int(nvertices)]
 ## Processar arquivo Saida
 '''
 Saıda. Sua biblioteca deve ser capaz de gerar um arquivo texto com as seguintes informacoes
@@ -93,7 +95,7 @@ class grafo_matriz_adjacencia():
         def funcao_auxiliar(vertice_filho, vertice_pai):
             vetor_pai_vertice[vertice_filho] = vertice_pai
             vetor_nivel_arvore[vertice_filho] = vetor_nivel_arvore[vertice_pai] + 1
-            return np.nan
+            return None
         self.busca_largura( vertice_raiz, funcao_auxiliar)
         return vetor_pai_vertice, vetor_nivel_arvore
 
@@ -102,16 +104,17 @@ class grafo_matriz_adjacencia():
         vetor_explorados[vertice_raiz] = 1
         fila = Queue(maxsize=self.numero_vertices)
         fila.put(vertice_raiz)
-        retorno_func_auxiliar = np.nan
-        while not fila.empty() and retorno_func_auxiliar != np.nan:
+        retorno_func_auxiliar = None
+        while (not fila.empty()) and (retorno_func_auxiliar == None):
             vertice_sendo_explorado = fila.get()
             for vertice_adjacente in range(self.numero_vertices):
                 if self.matriz[vertice_sendo_explorado][vertice_adjacente] == 1 and vetor_explorados[vertice_adjacente] == 0:
                         retorno_func_auxiliar = funcao_auxiliar(vertice_adjacente,vertice_sendo_explorado)
                         vetor_explorados[vertice_adjacente] = 1
                         fila.put(vertice_adjacente)                          
-                if retorno_func_auxiliar != np.nan:
+                if retorno_func_auxiliar != None:
                     break
+
         return retorno_func_auxiliar
     def busca_profundidade(self,vertice):
         #retorna árvore no arquivo de saída
@@ -124,10 +127,9 @@ class grafo_matriz_adjacencia():
         def funcao_auxiliar(vertice_filho, vertice_pai):
             vetor_pai_vertice[vertice_filho] = vertice_pai
             vetor_nivel_arvore[vertice_filho] = vetor_nivel_arvore[vertice_pai] + 1
-            print(vertice_filho,vertice2)
             if vertice_filho == vertice2:
                 return vetor_nivel_arvore[vertice_filho]
-            return np.nan
+            return None
 
         distancia = self.busca_largura(vertice1, funcao_auxiliar)
         return distancia
@@ -163,7 +165,7 @@ class grafo_lista_adjacencia():
 
 ### Debug
 matrizteste=grafo_matriz_adjacencia([[0,1],[1,4],[4,2],[3,4],[0,4]],5)
-print(matrizteste.matriz)
-print(matrizteste.calcula_distancia_vertices(1,2))
-print(matrizteste.calcula_maior_grau)
-print(matrizteste.calcula_menor_grau)
+#print(matrizteste.matriz)
+print(matrizteste.gera_arvore_largura(3))
+#print(matrizteste.calcula_maior_grau)
+#print(matrizteste.calcula_menor_grau)
