@@ -59,7 +59,6 @@ abaixo).
 
 class grafo_generico():
     def __init__(self,arestas,numero_vertices):
-        self.vetor_nome_vertices = np.zeros(numero_vertices)   
         self.numero_vertices = numero_vertices
         self.lista_graus = np.zeros(numero_vertices)
         
@@ -203,7 +202,6 @@ class grafo_generico():
 
 class grafo_matriz_adjacencia(grafo_generico):
     def __init__(self,arestas,numero_vertices):
-        self.vetor_nome_vertices = np.zeros(numero_vertices)   
         self.numero_vertices = numero_vertices
         self.matriz = np.zeros([numero_vertices, numero_vertices])
         self.lista_graus = np.zeros(numero_vertices)
@@ -212,7 +210,7 @@ class grafo_matriz_adjacencia(grafo_generico):
                 print("aresta não pode ir de um vertice para ele mesmo")
             if (self.matriz[aresta[0]][aresta[1]] == 1 or self.matriz[aresta[1]][aresta[0]] == 1):
                 print("Aresta "+str(aresta)+"já existe no grafo")
-                return 1
+                return None
             self.matriz[aresta[0]][aresta[1]] = 1
             self.matriz[aresta[1]][aresta[0]] = 1
             
@@ -231,9 +229,39 @@ class grafo_matriz_adjacencia(grafo_generico):
             if self.matriz[vertice_origem][vertice] == 1:
                 yield vertice
 
-class grafo_lista_adjacencia(grafo_generico): 
+class grafo_matriz_esparsa(grafo_generico):
     def __init__(self,arestas,numero_vertices):
-        self.vetor_nome_vertices = np.zeros(numero_vertices)   
+        self.numero_vertices = numero_vertices
+        self.esparsa = set()
+        self.lista_graus = np.zeros(numero_vertices)
+        for aresta in arestas:
+            if aresta[0] == aresta[1]:
+                print("aresta não pode ir de um vertice para ele mesmo")
+            if ((aresta[0],aresta[1]) in self.esparsa) or ((aresta[1],aresta[0]) in self.esparsa):
+                print("Aresta "+str(aresta)+"já existe no grafo")
+                return None
+
+            self.esparsa.add((aresta[0],aresta[1])) 
+            self.esparsa.add((aresta[1],aresta[0])) 
+            
+            self.lista_graus[aresta[1]]+= 1
+            self.lista_graus[aresta[0]]+= 1
+
+
+    def calcula_grau_vertice(self,vertice):
+        grau = np.sum(self.esparsa[vertice])
+        return grau
+
+    def gera_vertices_adjacentes(self,vertice_origem,reverter = False):
+        gerador = range(self.numero_vertices)
+        if reverter: gerador = reversed(gerador)
+        for vertice in gerador:
+            if (vertice_origem,vertice) in self.esparsa:
+                yield vertice
+
+
+class grafo_lista_adjacencia(grafo_generico): 
+    def __init__(self,arestas,numero_vertices):  
         self.numero_vertices = numero_vertices
         self.lista_adjacencias = []
         for lista in range(self.numero_vertices):self.lista_adjacencias.append([])
@@ -243,7 +271,7 @@ class grafo_lista_adjacencia(grafo_generico):
                 print("aresta não pode ir de um vertice para ele mesmo")
             if (aresta[1] in self.lista_adjacencias[aresta[0]] or aresta[0] in self.lista_adjacencias[aresta[1]]):
                 print("Aresta "+str(aresta)+"já existe no grafo")
-                return 1
+                return None
             self.lista_adjacencias[aresta[0]].append(aresta[1])
             self.lista_adjacencias[aresta[1]].append(aresta[0])
             
@@ -266,12 +294,15 @@ class grafo_lista_adjacencia(grafo_generico):
 arg1,arg2 = processarArquivoEntrada(args.inputfile)
 matrizteste=grafo_matriz_adjacencia(arg1,arg2)
 listateste = grafo_lista_adjacencia(arg1,arg2)
+esparsateste = grafo_matriz_esparsa(arg1,arg2)
 # # print(matrizteste.matriz)
 # print(matrizteste.gera_arvore_largura(3))
 # print(matrizteste.calcula_distancia_vertices(1,5))
 #print(matrizteste.calcula_diametro_grafo())
 #print(listateste.calcula_diametro_grafo())
 print(listateste.gera_arvore_profundidade(4))
+print(esparsateste.gera_arvore_profundidade(4))
+print(esparsateste.descobre_componentes_conexas())
 print(listateste.gera_arvore_largura(4))
 print(listateste.descobre_componentes_conexas())
 # print(matrizteste.calcula_maior_grau())
