@@ -3,6 +3,7 @@ import argparse
 import statistics
 from queue import Queue
 from queue import LifoQueue
+import bisect
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--inputfile", help = "Path Input File") 
@@ -63,8 +64,9 @@ class grafo_generico():
         self.lista_graus = np.zeros(numero_vertices)
         
 
-    def adjacencia_vertices(self,vertice1,vertice2):
-        return True
+    def gera_vertices_adjacentes(self,vertice_origem):
+        for vertice in range(self.numero_vertices):
+                yield vertice
         
     def calcula_maior_grau(self):
         return max(self.lista_graus)
@@ -101,8 +103,8 @@ class grafo_generico():
         retorno_func_auxiliar = None
         while (not fila.empty()) and ((retorno_func_auxiliar == None) or (not condicao_parada)):
             vertice_sendo_explorado = fila.get()
-            for vertice_adjacente in range(self.numero_vertices):
-                if self.adjacencia_vertices(vertice_sendo_explorado,vertice_adjacente)  and vetor_explorados[vertice_adjacente] == 0:
+            for vertice_adjacente in self.gera_vertices_adjacentes(vertice_sendo_explorado):
+                if vetor_explorados[vertice_adjacente] == 0:
                         retorno_func_auxiliar = funcao_auxiliar(vertice_adjacente,vertice_sendo_explorado)
                         vetor_explorados[vertice_adjacente] = 1
                         fila.put(vertice_adjacente)                          
@@ -124,12 +126,11 @@ class grafo_generico():
         
             if vetor_explorados[vertice_sendo_explorado] == 0:
                 vetor_explorados[vertice_sendo_explorado] = 1
-                for vertice_adjacente in reversed(range(self.numero_vertices)):
-                    if self.adjacencia_vertices(vertice_sendo_explorado,vertice_adjacente):
-                        if (vetor_explorados[vertice_adjacente] == 0) and (vertice_adjacente != vertice_raiz):
-                            vetor_pai_vertice[vertice_adjacente] = vertice_sendo_explorado
-                            vetor_nivel_arvore[vertice_adjacente] = vetor_nivel_arvore[vertice_sendo_explorado] + 1
-                        pilha.put(vertice_adjacente) 
+                for vertice_adjacente in self.gera_vertices_adjacentes(vertice_sendo_explorado,True):
+                    if (vetor_explorados[vertice_adjacente] == 0) and (vertice_adjacente != vertice_raiz):
+                        vetor_pai_vertice[vertice_adjacente] = vertice_sendo_explorado
+                        vetor_nivel_arvore[vertice_adjacente] = vetor_nivel_arvore[vertice_sendo_explorado] + 1
+                    pilha.put(vertice_adjacente) 
 
         # onde tiver 0 e nao for raiz = none em vetor nivel arvore
         for vertice in range(self.numero_vertices):
@@ -183,6 +184,7 @@ class grafo_generico():
             componente_conexa.append(vertice_filho)
             vertices_conhecidos[vertice_filho] = 1
             return None
+
         for vertice_raiz in range(self.numero_vertices):
             if vertices_conhecidos[vertice_raiz] == 0:
                 self.busca_largura(vertice_raiz,funcao_auxiliar)
@@ -217,13 +219,17 @@ class grafo_matriz_adjacencia(grafo_generico):
             self.lista_graus[aresta[1]]+= 1
             self.lista_graus[aresta[0]]+= 1
 
-    def adjacencia_vertices(self,vertice1,vertice2):
-        return self.matriz[vertice1][vertice2] == 1
 
     def calcula_grau_vertice(self,vertice):
         grau = np.sum(self.matriz[vertice])
         return grau
-    
+
+    def gera_vertices_adjacentes(self,vertice_origem,reverter = False):
+        gerador = range(self.numero_vertices)
+        if reverter: gerador = reversed(gerador)
+        for vertice in gerador:
+            if self.matriz[vertice_origem][vertice] == 1:
+                yield vertice
 
 class grafo_lista_adjacencia(grafo_generico): 
     def __init__(self,arestas,numero_vertices):
@@ -241,11 +247,19 @@ class grafo_lista_adjacencia(grafo_generico):
             self.lista_adjacencias[aresta[0]].append(aresta[1])
             self.lista_adjacencias[aresta[1]].append(aresta[0])
             
+            bisect.insort(self.lista_adjacencias[aresta[1]],aresta[0])
+            bisect.insort(self.lista_adjacencias[aresta[0]],aresta[1])
+
+
             self.lista_graus[aresta[1]]+= 1
             self.lista_graus[aresta[0]]+= 1
 
-    def adjacencia_vertices(self,vertice1,vertice2):
-        return vertice2 in self.lista_adjacencias[vertice1]
+    def gera_vertices_adjacentes(self,vertice_origem,reverter = False):
+        gerador = self.lista_adjacencias[vertice_origem]
+        if reverter: gerador = gerador[::-1]        
+        for vertice in gerador:
+            yield vertice
+
     
 
 ### Debug
@@ -257,8 +271,9 @@ listateste = grafo_lista_adjacencia(arg1,arg2)
 # print(matrizteste.calcula_distancia_vertices(1,5))
 #print(matrizteste.calcula_diametro_grafo())
 #print(listateste.calcula_diametro_grafo())
-print(matrizteste.gera_arvore_profundidade(4))
-print(matrizteste.gera_arvore_largura(4))
+print(listateste.gera_arvore_profundidade(4))
+print(listateste.gera_arvore_largura(4))
+print(listateste.descobre_componentes_conexas())
 # print(matrizteste.calcula_maior_grau())
 # print(matrizteste.calcula_menor_grau())
 # print(matrizteste.calcula_mediana_grau())
