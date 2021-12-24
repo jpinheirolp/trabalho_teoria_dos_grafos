@@ -1,6 +1,7 @@
 import numpy as np
 import argparse
 import statistics
+import random
 from timeit import default_timer as timer
 from queue import Queue
 from queue import LifoQueue
@@ -101,6 +102,20 @@ class grafo_generico():
         distancia = self.busca_largura(vertice1, funcao_auxiliar,True)
         return distancia
         
+    def calcula_diametro_grafo_estimado(self,numero_distancias):
+        maior_distancia = 0
+        distancia = 0
+        contador = 0
+        while contador < numero_distancias:
+            distancia = self.calcula_distancia_vertices(random.randint(0,self.numero_vertices-1),random.randint(0,self.numero_vertices-1))
+            if distancia == None: distancia = 0
+            if distancia > maior_distancia:
+                maior_distancia = distancia
+            if distancia > 0: contador += 1
+            
+            
+            
+        return maior_distancia
 
     def calcula_diametro_grafo(self):
         diametro = [0]
@@ -201,6 +216,26 @@ class grafo_matriz_esparsa(grafo_generico):
             if (vertice_origem,vertice) in self.esparsa:
                 yield vertice
 
+    def calcula_diametro_grafo_estimado(self,numero_distancias):
+        contador = 0
+        diametro = [0]
+        for aresta in self.esparsa:
+            vertice_raiz =  aresta[0]
+        
+            vetor_nivel_arvore = np.zeros(self.numero_vertices)
+            vetor_pai_vertice = np.full(self.numero_vertices,None)
+            
+            def funcao_auxiliar(vertice_filho, vertice_pai):
+                vetor_pai_vertice[vertice_filho] = vertice_pai
+                vetor_nivel_arvore[vertice_filho] = vetor_nivel_arvore[vertice_pai] + 1
+                diametro[0] = max(vetor_nivel_arvore[vertice_filho],diametro[0])
+                
+                return None
+            self.busca_largura(vertice_raiz, funcao_auxiliar,False)
+            contador += 1
+            if contador >= numero_distancias: break
+            print(diametro[0],contador)
+        return diametro[0]
 
 class grafo_lista_adjacencia(grafo_generico): 
     def __init__(self,arestas,numero_vertices):  
@@ -232,6 +267,8 @@ class grafo_lista_adjacencia(grafo_generico):
             yield vertice
 
     
+
+
 
 
 
@@ -333,74 +370,79 @@ def processarArquivoSaida(grafo,arquivosaida):
 
 cleanfilename=args.inputfile.split("/")[-1]
 arg1,arg2 = processarArquivoEntrada(args.inputfile)
-if args.kind == "1":
-    representacao="Matriz_Adjacencia"
-    grafo=grafo_matriz_esparsa(arg1,arg2)
-    ## Busca Largura
-    vertices_com_adjacencia=[]
-    limitador=0
-    for i in grafo.esparsa:
-        variavelauxiliar=i[1]
-        if variavelauxiliar not in vertices_com_adjacencia:
-            vertices_com_adjacencia.append(variavelauxiliar)
-            limitador+=1
-        if limitador > 999:
-            break
-    while len(vertices_com_adjacencia) < 1000:
-        for i in range(grafo.numero_vertices):
-            if i not in vertices_com_adjacencia:
-                vertices_com_adjacencia.append(i)
-            if len(vertices_com_adjacencia) == 1000:
-                break
-        for i in range(grafo.numero_vertices):
-            vertices_com_adjacencia.append(i)
-            if len(vertices_com_adjacencia) == 1000:
-                break
-    start = timer()
-    for vertice in vertices_com_adjacencia:
-        grafo.gera_arvore_largura(vertice)
-    end = timer()
-    somatempo=end-start
-    print("saida:{};{};{}".format(representacao,"Largura", somatempo/1000))  
-    ## Busca Profundidade
-    start = timer() 
-    for vertice in vertices_com_adjacencia:
-        grafo.gera_arvore_profundidade(vertice)
-    end = timer()
-    somatempo=end-start
-    print("saida:{};{};{}".format(representacao,"Profundidade", somatempo/1000))
-    processarArquivoSaida(grafo,cleanfilename+"-"+representacao+"-informacoesgrafo.txt")        
-elif args.kind == "2":
-    representacao="Lista_Adjacencia"
-    grafo=grafo_lista_adjacencia(arg1,arg2)
-    ## Busca Largura
-    vertices_com_adjacencia=[]
-    limitador=0
-    for i in grafo.lista_adjacencias:
-        if len(i)>0:
-            if i[0] not in vertices_com_adjacencia:
-                vertices_com_adjacencia.append(i[0])
-            limitador+=1
-        if limitador > 999:
-            break
-    while len(vertices_com_adjacencia) < 1000:
-        for i in range(grafo.numero_vertices):
-            if i not in vertices_com_adjacencia:
-                vertices_com_adjacencia.append(i)
-            if len(vertices_com_adjacencia) == 1000:
-                break
-        for i in range(grafo.numero_vertices):
-            vertices_com_adjacencia.append(i)
-            if len(vertices_com_adjacencia) == 1000:
-                break
-    start = timer()
-    for vertice in vertices_com_adjacencia:
-        grafo.gera_arvore_largura(vertice)
-    end = timer()
-    somatempo=end-start
-    print("saida:{};{};{}".format(representacao,"Largura", somatempo/1000)) 
-    ## Busca Profundidade
-    start = timer() 
-    for vertice in vertices_com_adjacencia:
-        grafo.gera_arvore_profundidade(vertice)
-    end = timer()
+#teste diametro aprox
+esparsateste = grafo_matriz_esparsa(arg1,arg2)
+input()
+print(esparsateste.calcula_diametro_grafo_estimado(100))
+#print(esparsateste.calcula_diametro_grafo())
+# if args.kind == "1":
+#     representacao="Matriz_Adjacencia"
+#     grafo=grafo_matriz_esparsa(arg1,arg2)
+#     ## Busca Largura
+#     vertices_com_adjacencia=[]
+#     limitador=0
+#     for i in grafo.esparsa:
+#         variavelauxiliar=i[1]
+#         if variavelauxiliar not in vertices_com_adjacencia:
+#             vertices_com_adjacencia.append(variavelauxiliar)
+#             limitador+=1
+#         if limitador > 999:
+#             break
+#     while len(vertices_com_adjacencia) < 1000:
+#         for i in range(grafo.numero_vertices):
+#             if i not in vertices_com_adjacencia:
+#                 vertices_com_adjacencia.append(i)
+#             if len(vertices_com_adjacencia) == 1000:
+#                 break
+#         for i in range(grafo.numero_vertices):
+#             vertices_com_adjacencia.append(i)
+#             if len(vertices_com_adjacencia) == 1000:
+#                 break
+#     start = timer()
+#     for vertice in vertices_com_adjacencia:
+#         grafo.gera_arvore_largura(vertice)
+#     end = timer()
+#     somatempo=end-start
+#     print("saida:{};{};{}".format(representacao,"Largura", somatempo/1000))  
+#     ## Busca Profundidade
+#     start = timer() 
+#     for vertice in vertices_com_adjacencia:
+#         grafo.gera_arvore_profundidade(vertice)
+#     end = timer()
+#     somatempo=end-start
+#     print("saida:{};{};{}".format(representacao,"Profundidade", somatempo/1000))
+#     processarArquivoSaida(grafo,cleanfilename+"-"+representacao+"-informacoesgrafo.txt")        
+# elif args.kind == "2":
+#     representacao="Lista_Adjacencia"
+#     grafo=grafo_lista_adjacencia(arg1,arg2)
+#     ## Busca Largura
+#     vertices_com_adjacencia=[]
+#     limitador=0
+#     for i in grafo.lista_adjacencias:
+#         if len(i)>0:
+#             if i[0] not in vertices_com_adjacencia:
+#                 vertices_com_adjacencia.append(i[0])
+#             limitador+=1
+#         if limitador > 999:
+#             break
+#     while len(vertices_com_adjacencia) < 1000:
+#         for i in range(grafo.numero_vertices):
+#             if i not in vertices_com_adjacencia:
+#                 vertices_com_adjacencia.append(i)
+#             if len(vertices_com_adjacencia) == 1000:
+#                 break
+#         for i in range(grafo.numero_vertices):
+#             vertices_com_adjacencia.append(i)
+#             if len(vertices_com_adjacencia) == 1000:
+#                 break
+#     start = timer()
+#     for vertice in vertices_com_adjacencia:
+#         grafo.gera_arvore_largura(vertice)
+#     end = timer()
+#     somatempo=end-start
+#     print("saida:{};{};{}".format(representacao,"Largura", somatempo/1000)) 
+#     ## Busca Profundidade
+#     start = timer() 
+#     for vertice in vertices_com_adjacencia:
+#         grafo.gera_arvore_profundidade(vertice)
+#     end = timer()
