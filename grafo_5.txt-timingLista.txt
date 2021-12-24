@@ -1,0 +1,2 @@
+Lista_Adjacencia;Largura;1.7570910771000054
+Lista_Adjacencia;Profundidade;3.9246381639000028

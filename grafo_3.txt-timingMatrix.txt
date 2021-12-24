@@ -1,0 +1,2 @@
+Matriz_Adjacencia;Largura;3.664659153200002
+Matriz_Adjacencia;Profundidade;3.5766579702000016
