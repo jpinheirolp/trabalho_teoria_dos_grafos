@@ -7,7 +7,29 @@ from queue import Queue
 from queue import LifoQueue
 import bisect
 
-class grafo_generico():
+class grafo_com_pesos():
+    def __init__(self,arestas,numero_vertices):
+        self.numero_vertices = numero_vertices
+        self.numero_arestas = len(arestas)
+
+    def gera_vertices_adjacentes(self,vertice_origem):
+        for vertice in range(self.numero_vertices):
+                yield vertice
+
+    #utilizar bellmanford ou djikstra dependendo
+    def calcula_distancia_vertices_1_para_n(self,vertice_origem,lista_vertices):
+        lista_distancias, lista_caminhos = [],[]
+        return lista_distancias, lista_caminhos
+
+    def calcula_distancia_vertices_1_para_todos(self,vertice_origem):
+        lista_distancias, lista_caminhos = [],[]
+        return lista_distancias, lista_caminhos
+    
+    def gera_mst(self):
+        lista_pais = []
+        return lista_pais
+        
+class grafo_sem_pesos():
     def __init__(self,arestas,numero_vertices):
         self.numero_vertices = numero_vertices
         self.lista_graus = np.zeros(numero_vertices)
@@ -164,8 +186,30 @@ class grafo_generico():
         lista_componentes.pop() # remove 0 '[-1]' pois ele sempre sera o ultimo elemento
         return lista_componentes 
 
+class grafo_matriz_esparsa_peso(grafo_com_pesos):
+    def __init__(self,arestas,numero_vertices):
+        self.numero_vertices = numero_vertices
+        self.numero_arestas = len(arestas)
+        self.esparsa = dict()
+        for aresta in arestas:
+            if aresta[0] == aresta[1]:
+                print("aresta não pode ir de um vertice para ele mesmo")
+            if ((aresta[0],aresta[1]) in self.esparsa) or ((aresta[1],aresta[0]) in self.esparsa):
+                print("Aresta "+str(aresta)+"já existe no grafo")
+                return None
 
-class grafo_matriz_adjacencia(grafo_generico):
+            self.esparsa.update({(aresta[0],aresta[1]),aresta[2]}) 
+            self.esparsa.update({(aresta[1],aresta[0]),aresta[2]}) 
+            
+
+    def gera_vertices_adjacentes(self,vertice_origem,reverter = False):
+        gerador = range(self.numero_vertices)
+        if reverter: gerador = reversed(gerador)
+        for vertice in gerador:
+            if (vertice_origem,vertice) in self.esparsa:
+                yield vertice
+
+class grafo_matriz_adjacencia(grafo_sem_pesos):
     def __init__(self,arestas,numero_vertices):
         self.numero_vertices = numero_vertices
         self.numero_arestas = len(arestas)
@@ -190,7 +234,7 @@ class grafo_matriz_adjacencia(grafo_generico):
             if self.matriz[vertice_origem][vertice] == 1:
                 yield vertice
 
-class grafo_matriz_esparsa(grafo_generico):
+class grafo_matriz_esparsa(grafo_sem_pesos):
     def __init__(self,arestas,numero_vertices):
         self.numero_vertices = numero_vertices
         self.numero_arestas = len(arestas)
@@ -237,7 +281,7 @@ class grafo_matriz_esparsa(grafo_generico):
             print(diametro[0],contador)
         return diametro[0]
 
-class grafo_lista_adjacencia(grafo_generico): 
+class grafo_lista_adjacencia(grafo_sem_pesos): 
     def __init__(self,arestas,numero_vertices):  
         self.numero_vertices = numero_vertices
         self.numero_arestas = len(arestas)
