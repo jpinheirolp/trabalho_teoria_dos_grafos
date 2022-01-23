@@ -5,6 +5,7 @@ import random
 from timeit import default_timer as timer
 from queue import Queue
 from queue import LifoQueue
+from queue import PriorityQueue
 import bisect
 
 class grafo_com_pesos():
@@ -15,6 +16,8 @@ class grafo_com_pesos():
     def gera_vertices_adjacentes(self,vertice_origem):
         for vertice in range(self.numero_vertices):
                 yield vertice
+    def retorna_peso_aresta(self,vertice1,vertice2):
+        return 0
 
     #utilizar bellmanford ou djikstra dependendo
     def calcula_distancia_vertices_1_para_n(self,vertice_origem,lista_vertices):
@@ -28,7 +31,93 @@ class grafo_com_pesos():
     def gera_mst(self):
         lista_pais = []
         return lista_pais
-        
+    '''
+    1. Dijkstra(Grafo, Vertice Origem)
+2. Para cada vértice v == lista de vertices
+    3. dist[v] = infinito
+    4. Define conjunto S = 0 // inicia vazio
+    5. dist[s] = 0
+    6. Enquanto S != V
+        7. Selecione u em V-S, tal que dist[u] é mínima3
+        8. Adicione u em S
+        9. Para cada vizinho v de u faça
+            10. Se dist[v] > dist[u] + w(u,v) então
+                11. dist[v] = dist[u] + w(u,v)4
+12.Retorna dist[]
+    vector<double> vetordistancias;
+    vector <Vertice> verticesPais;
+    vector <bool> verticesexplorados;
+    vector <Aresta> menorcaminho;
+    size_t  contadorexplorados=0;
+
+    for (Vertice &vertice:listadevertices){
+        vetordistancias.push_back(INFINITO);
+        verticesPais.push_back(Vertice("vazio"));
+        verticesexplorados.push_back(false);
+    }
+    vetordistancias[pegarIndiceVertice(verticeorigem)]=0;
+    int menorindex=pegarIndiceVertice(verticeorigem);
+    while (contadorexplorados!=listadevertices.size()){
+        double menordistancia=INFINITO;  
+        for (size_t  index=0;index<=listadevertices.size();index++){
+            if (verticesexplorados[index]==false&&menordistancia>vetordistancias[index]){
+                menordistancia=vetordistancias[index];
+                menorindex=index;
+                break;
+            }
+        }
+        Vertice verticeAtual=listadevertices[menorindex];
+        verticesexplorados[menorindex]=true;
+        contadorexplorados+=1;
+        vector<Vertice> listavizinhos=pegaListaAdjacenciaVertice(verticeAtual);
+        for (Vertice &vizinho:listavizinhos){
+            double peso_arestaVizinho=pegarAresta(verticeAtual,vizinho).getPeso();
+            
+            if ( vetordistancias[pegarIndiceVertice(vizinho)] > (vetordistancias[menorindex]+peso_arestaVizinho) ){
+                vetordistancias[pegarIndiceVertice(vizinho)]=vetordistancias[menorindex]+peso_arestaVizinho;
+                verticesPais[pegarIndiceVertice(vizinho)]=verticeAtual;
+            }
+        }
+        if (listadevertices[menorindex]==verticeDestino){
+            break;
+        } 
+         
+    }
+    Vertice verticepai;
+    Vertice verticefilho=verticeDestino;
+    while (!(verticepai==verticeorigem)){
+        verticepai=verticesPais[pegarIndiceVertice(verticefilho)];
+        menorcaminho.push_back(pegarAresta(verticepai,verticefilho));
+        verticefilho=verticepai;
+    }
+    return menorcaminho;
+    '''
+    def executa_dijkstra(self,vertice_origem):
+        vetor_distancias = np.full(self.numero_vertices,np.inf)
+        vetor_pais = np.full(self.numero_vertices,None)
+        vertices_explorados = np.full(self.numero_vertices,False)
+        fila_prioridade = PriorityQueue(maxsize=self.numero_vertices)
+        fila_prioridade.put((0,vertice_origem))
+
+        contador_explorados = self.numero_vertices
+        vetor_distancias[vertice_origem] = 0
+
+        while(contador_explorados > 0):
+            while fila_prioridade.full():
+                vertice_atual = fila_prioridade.get()
+                if not vertices_explorados[vertice_atual]:
+                    break 
+            vertices_explorados[vertice_atual] = True
+            contador_explorados += 1
+            for vertice_vizinho in self.gera_vertices_adjacentes(vertice_origem):
+                peso_aresta = self.retorna_peso_aresta(vertice_atual,vertice_vizinho)
+                if vetor_distancias[vertice_vizinho] > (vetor_distancias[vertice_atual] + peso_aresta):
+                    vetor_distancias[vertice_vizinho] = (vetor_distancias[vertice_atual] + peso_aresta)
+                    vetor_pais[vertice_vizinho] = vertice_atual
+                    fila_prioridade.put((vetor_distancias[vertice_vizinho],vertice_vizinho))
+
+        return 0
+
 class grafo_sem_pesos():
     def __init__(self,arestas,numero_vertices):
         self.numero_vertices = numero_vertices
