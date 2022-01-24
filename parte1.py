@@ -1,3 +1,5 @@
+from math import inf
+from pickle import FALSE
 import numpy as np
 import argparse
 import statistics
@@ -12,6 +14,7 @@ class grafo_com_pesos():
     def __init__(self,arestas,numero_vertices):
         self.numero_vertices = numero_vertices
         self.numero_arestas = len(arestas)
+        self.ciclo_negativo = False
 
     def gera_vertices_adjacentes(self,vertice_origem):
         for vertice in range(self.numero_vertices):
@@ -28,9 +31,40 @@ class grafo_com_pesos():
         lista_distancias, lista_caminhos = [],[]
         return lista_distancias, lista_caminhos
     
-    def gera_mst(self):
-        lista_pais = []
-        return lista_pais
+    def gera_mst(self,vertice_origem=0):
+        vetor_custos = np.full(self.numero_vertices,np.inf)
+        vetor_arestas_leves = [[]]*self.numero_vertices
+        vertices_explorados = np.full(self.numero_vertices,False)
+        fila_prioridade = PriorityQueue(maxsize=self.numero_vertices)
+        fila_prioridade.put((0,vertice_origem))
+        custo_mst = 0
+
+        contador_explorados = self.numero_vertices
+        vetor_custos[vertice_origem] = 0
+        vertice_atual = vertice_origem
+
+        while(contador_explorados > 0):
+            while fila_prioridade.full():
+                vertice_atual = fila_prioridade.get()
+                if not vertices_explorados[vertice_atual]:
+                    break 
+            vertices_explorados[vertice_atual] = True
+            contador_explorados += 1
+            for vertice_vizinho in self.gera_vertices_adjacentes(vertice_origem):
+                peso_aresta = self.retorna_peso_aresta(vertice_atual,vertice_vizinho)
+                custo_vizinho = vetor_custos[vertice_vizinho]
+                if custo_vizinho > peso_aresta:
+                    vetor_custos[vertice_vizinho] = peso_aresta
+                    vetor_arestas_leves[vertice_vizinho] = [vertice_atual,vertice_vizinho,peso_aresta]
+                    fila_prioridade.put((vetor_custos[vertice_vizinho],vertice_vizinho))
+                    if custo_vizinho < np.inf:
+                        custo_mst += peso_aresta - custo_vizinho
+                    else:
+                        custo_mst += peso_aresta 
+
+
+        return vetor_arestas_leves, custo_mst
+
     '''
     1. Dijkstra(Grafo, Vertice Origem)
 2. Para cada vértice v == lista de vertices
@@ -92,22 +126,32 @@ class grafo_com_pesos():
     }
     return menorcaminho;
     '''
-    def executa_dijkstra(self,vertice_origem):
+
+    def executa_dijkstra(self,vertice_origem,vertices_destino = []):
         vetor_distancias = np.full(self.numero_vertices,np.inf)
         vetor_pais = np.full(self.numero_vertices,None)
         vertices_explorados = np.full(self.numero_vertices,False)
         fila_prioridade = PriorityQueue(maxsize=self.numero_vertices)
         fila_prioridade.put((0,vertice_origem))
+        resultado = []
+
+        if len(vertices_destino) == 0:
+            for i in range(self.numero_vertices):
+                vertices_destino.append(i)
 
         contador_explorados = self.numero_vertices
         vetor_distancias[vertice_origem] = 0
+        vertice_atual = vertice_origem
+        contador_destinos = 0
 
-        while(contador_explorados > 0):
+        while((contador_explorados > 0) and (contador_destinos < len(vertices_destino))):
             while fila_prioridade.full():
                 vertice_atual = fila_prioridade.get()
                 if not vertices_explorados[vertice_atual]:
                     break 
             vertices_explorados[vertice_atual] = True
+            if vertice_atual in vertices_destino:
+                contador_destinos += 1
             contador_explorados += 1
             for vertice_vizinho in self.gera_vertices_adjacentes(vertice_origem):
                 peso_aresta = self.retorna_peso_aresta(vertice_atual,vertice_vizinho)
@@ -115,8 +159,58 @@ class grafo_com_pesos():
                     vetor_distancias[vertice_vizinho] = (vetor_distancias[vertice_atual] + peso_aresta)
                     vetor_pais[vertice_vizinho] = vertice_atual
                     fila_prioridade.put((vetor_distancias[vertice_vizinho],vertice_vizinho))
+        
 
-        return 0
+        for vertice_destino in vertices_destino:
+            menorcaminho = []
+            vertice_pai = 0
+            vertice_filho = vertice_destino
+            while (vertice_pai != vertice_origem):
+                vertice_pai = vetor_pais[vertice_filho]
+                menorcaminho.append([vertice_pai, vertice_filho, self.retorna_peso_aresta(vertice_pai,vertice_filho)])
+                vertice_filho=vertice_pai
+            resultado.append([vertice_destino, vetor_distancias[vertice_destino], menorcaminho])
+
+        return resultado
+
+
+    def executa_bellman_ford(self,vertice_destino,vertices_origem=[]):
+        vetor_distancias = np.full(self.numero_vertices,np.inf)
+        vetor_distancias[vertice_destino] = 0
+        vetor_pais = np.full(self.numero_vertices,None)
+        tamanho_menor_caminho = 1
+        resultado = []
+        if len(vertices_origem ) == 0:
+            for i in range(self.numero_vertices):
+                vertices_origem.append(i)
+
+        while tamanho_menor_caminho <= self.numero_vertices:
+            houve_alteracao = False
+            for vertice_atual in range(self.numero_vertices):
+                for vertice_vizinho in self.gera_vertices_adjacentes(vertice_atual):
+                    nova_distancia = self.retorna_peso_aresta(vertice_atual,vertice_vizinho) + vetor_distancias[vertice_vizinho]
+                    if vetor_distancias[vertice_atual] > nova_distancia:
+                        vertice_atual = nova_distancia
+                        vetor_pais[vertice_atual] = vertice_vizinho
+                        houve_alteracao = True
+            if houve_alteracao:
+                break
+        if tamanho_menor_caminho == self.numero_vertices:
+            print("grafo possui ciclo negativo")
+            self.ciclo_negativo = True
+            return []
+
+        for vertice_origem in vertices_origem:
+            menorcaminho = []
+            vertice_pai = 0
+            vertice_filho = vertice_origem
+            while (vertice_pai != vertice_destino):
+                vertice_pai = vetor_pais[vertice_filho]
+                menorcaminho.append([vertice_pai, vertice_filho, self.retorna_peso_aresta(vertice_pai,vertice_filho)])
+                vertice_filho=vertice_pai
+            resultado.append([vertice_origem, vetor_distancias[vertice_origem], menorcaminho])
+
+        return resultado
 
 class grafo_sem_pesos():
     def __init__(self,arestas,numero_vertices):
