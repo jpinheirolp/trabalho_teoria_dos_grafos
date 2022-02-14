@@ -10,6 +10,7 @@ from queue import LifoQueue
 from queue import PriorityQueue
 import bisect
 
+
 class grafo_com_pesos():
     def __init__(self,arestas,numero_vertices):
         self.numero_vertices = numero_vertices
@@ -134,7 +135,6 @@ class grafo_com_pesos():
         fila_prioridade = PriorityQueue(maxsize=self.numero_vertices)
         fila_prioridade.put((0,vertice_origem))
         resultado = []
-
         if len(vertices_destino) == 0:
             for i in range(self.numero_vertices):
                 vertices_destino.append(i)
@@ -143,10 +143,11 @@ class grafo_com_pesos():
         vetor_distancias[vertice_origem] = 0
         vertice_atual = vertice_origem
         contador_destinos = 0
-
+        
         while((contador_explorados > 0) and (contador_destinos < len(vertices_destino))):
             while fila_prioridade.full():
-                vertice_atual = fila_prioridade.get()
+                vertice_atual = fila_prioridade.get()[1]
+                print(vertice_atual)
                 if not vertices_explorados[vertice_atual]:
                     break 
             vertices_explorados[vertice_atual] = True
@@ -160,11 +161,12 @@ class grafo_com_pesos():
                     vetor_pais[vertice_vizinho] = vertice_atual
                     fila_prioridade.put((vetor_distancias[vertice_vizinho],vertice_vizinho))
         
-
+        print(vetor_pais)
         for vertice_destino in vertices_destino:
             menorcaminho = []
             vertice_pai = 0
             vertice_filho = vertice_destino
+            print(vertice_pai,vertice_origem)
             while (vertice_pai != vertice_origem):
                 vertice_pai = vetor_pais[vertice_filho]
                 menorcaminho.append([vertice_pai, vertice_filho, self.retorna_peso_aresta(vertice_pai,vertice_filho)])
@@ -516,18 +518,24 @@ def processarArquivoEntrada(arquivoentrada):
     f = open(arquivoentrada, "r")
     nvertices=f.readline() # primeira linha
     arestas=[]
+    temnegativo=0
     while(1):
         line = f.readline()
         if (line != ''):
             line=line.replace('\n',"")
             line=line.replace('\r',"")
-            aresta=line.split(" ", 1)
-            aresta=[int(aresta[0])-1,int(aresta[1])-1]
+            aresta=line.split(" ")
+            if len(aresta)==3:
+                if float(aresta[2])<0:
+                    temnegativo=1
+                aresta=[int(aresta[0])-1,int(aresta[1])-1,float(aresta[2])]
+            if len(aresta)==2:
+                aresta=[int(aresta[0])-1,int(aresta[1])-1]
             arestas.append(aresta)
         else:
             break
     f.close()
-    return arestas,int(nvertices)
+    return arestas,int(nvertices),temnegativo
 ## Processar arquivo Saida
 '''
 Saida. Sua biblioteca deve ser capaz de gerar um arquivo texto com as seguintes informacoes
@@ -581,7 +589,9 @@ def processarArquivoSaida(grafo,arquivosaida):
     f.write("Tamanho da Maior Componente Conexa:"+str(componentes_conexas[0][0])+"\n")
     f.write("Tamanho da Menor Componente Conexa:"+str(componentes_conexas[-1][0])+"\n")
     f.close()
- 
+def processarArquivoSaidaTrabalho2(grafo,arquivosaida):
+    f = open(arquivosaida, "a")
+    f.close()
 ### Debug
 # matrizteste=grafo_matriz_adjacencia(arg1,arg2)
 # listateste = grafo_lista_adjacencia(arg1,arg2)
@@ -595,12 +605,33 @@ def processarArquivoSaida(grafo,arquivosaida):
 # ##########
 #
 
-cleanfilename=args.inputfile.split("/")[-1]
-arg1,arg2 = processarArquivoEntrada(args.inputfile)
+#cleanfilename=args.inputfile.split("/")[-1]
+arg1,arg2,temnegativo = processarArquivoEntrada('arquivoteste.txt')
+if len(arg1[0])==3 and temnegativo==0:
+    grafo=grafo_com_pesos(arg1,arg2)
+    # Se o grafo possuir pesos nao negativos, o algoritmo de Dijkstra deve ser utilizado
+    print(grafo.executa_dijkstra(0))
+    print(grafo.executa_dijkstra(1))
+    print(grafo.executa_dijkstra(2))
+    print(grafo.executa_dijkstra(3))
+    print(grafo.executa_dijkstra(4))
+
+if len(arg1[0])==3 and temnegativo==1:
+    # Se o grafo possuir pesos negativos, o algoritmo de Floyd-Warshall ou o algoritmo de Bellman-Ford
+    grafo=grafo_com_pesos(arg1,arg2)
+    grafo.executa_bellman_ford()
+if len(arg1[0])==2:
+    # nao possuir pesos, o algoritmo de busca em largura deve ser utilizado
+    grafo=grafo_matriz_adjacencia(arg1,arg2)
+    grafo.busca_largura()
+    
+    
+
+
 #teste diametro aprox
-esparsateste = grafo_matriz_esparsa(arg1,arg2)
-input()
-print(esparsateste.calcula_diametro_grafo_estimado(100))
+#esparsateste = grafo_matriz_esparsa(arg1,arg2)
+#input()
+#print(esparsateste.calcula_diametro_grafo_estimado(100))
 #print(esparsateste.calcula_diametro_grafo())
 # if args.kind == "1":
 #     representacao="Matriz_Adjacencia"
