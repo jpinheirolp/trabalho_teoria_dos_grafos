@@ -132,7 +132,7 @@ class grafo_com_pesos():
         vetor_distancias = np.full(self.numero_vertices,np.inf)
         vetor_pais = np.full(self.numero_vertices,None)
         vertices_explorados = np.full(self.numero_vertices,False)
-        fila_prioridade = PriorityQueue(maxsize=self.numero_vertices)
+        fila_prioridade = PriorityQueue()
         fila_prioridade.put((0,vertice_origem))
         resultado = []
         if len(vertices_destino) == 0:
@@ -143,25 +143,29 @@ class grafo_com_pesos():
         vetor_distancias[vertice_origem] = 0
         vertice_atual = vertice_origem
         contador_destinos = 0
-        
+        print("\n")
         while((contador_explorados > 0) and (contador_destinos < len(vertices_destino))):
-            while fila_prioridade.full():
-                vertice_atual = fila_prioridade.get()[1]
-                print(vertice_atual)
+            while not fila_prioridade.empty():
+                elemento_fila = fila_prioridade.get()
+                vertice_atual = elemento_fila[1]
+                
                 if not vertices_explorados[vertice_atual]:
                     break 
+            print(vertice_atual)
             vertices_explorados[vertice_atual] = True
             if vertice_atual in vertices_destino:
                 contador_destinos += 1
             contador_explorados += 1
-            for vertice_vizinho in self.gera_vertices_adjacentes(vertice_origem):
+            for vertice_vizinho in self.gera_vertices_adjacentes(vertice_atual):
                 peso_aresta = self.retorna_peso_aresta(vertice_atual,vertice_vizinho)
                 if vetor_distancias[vertice_vizinho] > (vetor_distancias[vertice_atual] + peso_aresta):
-                    vetor_distancias[vertice_vizinho] = (vetor_distancias[vertice_atual] + peso_aresta)
+                    vetor_distancias[vertice_vizinho] = vetor_distancias[vertice_atual] + peso_aresta
                     vetor_pais[vertice_vizinho] = vertice_atual
                     fila_prioridade.put((vetor_distancias[vertice_vizinho],vertice_vizinho))
         
-        print(vetor_pais)
+        print("acabou porra, acabou")
+        #print(vetor_pais)
+
         for vertice_destino in vertices_destino:
             menorcaminho = []
             vertice_pai = 0
@@ -382,9 +386,9 @@ class grafo_matriz_esparsa_peso(grafo_com_pesos):
             if ((aresta[0],aresta[1]) in self.esparsa) or ((aresta[1],aresta[0]) in self.esparsa):
                 print("Aresta "+str(aresta)+"já existe no grafo")
                 return None
-
-            self.esparsa.update({(aresta[0],aresta[1]),aresta[2]}) 
-            self.esparsa.update({(aresta[1],aresta[0]),aresta[2]}) 
+            print(aresta)
+            self.esparsa.update({(aresta[0],aresta[1]):aresta[2]}) 
+            self.esparsa.update({(aresta[1],aresta[0]):aresta[2]}) 
             
 
     def gera_vertices_adjacentes(self,vertice_origem,reverter = False):
@@ -393,6 +397,9 @@ class grafo_matriz_esparsa_peso(grafo_com_pesos):
         for vertice in gerador:
             if (vertice_origem,vertice) in self.esparsa:
                 yield vertice
+
+    def retorna_peso_aresta(self,vertice1,vertice2):
+        return self.esparsa[(vertice1,vertice2)]
 
 class grafo_matriz_adjacencia(grafo_sem_pesos):
     def __init__(self,arestas,numero_vertices):
@@ -606,9 +613,9 @@ def processarArquivoSaidaTrabalho2(grafo,arquivosaida):
 #
 
 #cleanfilename=args.inputfile.split("/")[-1]
-arg1,arg2,temnegativo = processarArquivoEntrada('arquivoteste.txt')
+arg1,arg2,temnegativo = processarArquivoEntrada('arquivo_teste_peso.txt')
 if len(arg1[0])==3 and temnegativo==0:
-    grafo=grafo_com_pesos(arg1,arg2)
+    grafo=grafo_matriz_esparsa_peso(arg1,arg2)
     # Se o grafo possuir pesos nao negativos, o algoritmo de Dijkstra deve ser utilizado
     print(grafo.executa_dijkstra(0))
     print(grafo.executa_dijkstra(1))
@@ -618,7 +625,7 @@ if len(arg1[0])==3 and temnegativo==0:
 
 if len(arg1[0])==3 and temnegativo==1:
     # Se o grafo possuir pesos negativos, o algoritmo de Floyd-Warshall ou o algoritmo de Bellman-Ford
-    grafo=grafo_com_pesos(arg1,arg2)
+    grafo=grafo_matriz_esparsa_peso(arg1,arg2)
     grafo.executa_bellman_ford()
 if len(arg1[0])==2:
     # nao possuir pesos, o algoritmo de busca em largura deve ser utilizado
