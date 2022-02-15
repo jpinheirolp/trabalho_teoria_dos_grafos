@@ -36,7 +36,7 @@ class grafo_com_pesos():
         vetor_custos = np.full(self.numero_vertices,np.inf)
         vetor_arestas_leves = [[]]*self.numero_vertices
         vertices_explorados = np.full(self.numero_vertices,False)
-        fila_prioridade = PriorityQueue(maxsize=self.numero_vertices)
+        fila_prioridade = PriorityQueue()
         fila_prioridade.put((0,vertice_origem))
         custo_mst = 0
 
@@ -45,8 +45,8 @@ class grafo_com_pesos():
         vertice_atual = vertice_origem
 
         while(contador_explorados > 0):
-            while fila_prioridade.full():
-                vertice_atual = fila_prioridade.get()
+            while not fila_prioridade.empty():
+                vertice_atual = fila_prioridade.get()[1]
                 if not vertices_explorados[vertice_atual]:
                     break 
             vertices_explorados[vertice_atual] = True
@@ -118,7 +118,9 @@ class grafo_com_pesos():
         return resultado
 
 
-    def executa_bellman_ford(self,vertice_destino,vertices_origem=[]):
+    def executa_bellman_ford(self,vertice_destino,vertices_origem=None):
+        if vertices_origem == None:
+            vertices_origem = []
         vetor_distancias = np.full(self.numero_vertices,np.inf)
         vetor_distancias[vertice_destino] = 0
         vetor_pais = np.full(self.numero_vertices,None)
@@ -555,11 +557,11 @@ arg1,arg2,temnegativo = processarArquivoEntrada('arquivo_teste_peso.txt')
 if len(arg1[0])==3 and temnegativo==0:
     grafo=grafo_matriz_esparsa_peso(arg1,arg2)
     # Se o grafo possuir pesos nao negativos, o algoritmo de Dijkstra deve ser utilizado
-    print(grafo.executa_dijkstra(0))
-    print(grafo.executa_dijkstra(1))
-    print(grafo.executa_dijkstra(2))
-    print(grafo.executa_dijkstra(3))
-    print(grafo.executa_dijkstra(4))
+    print(grafo.gera_mst(0))
+    print(grafo.gera_mst(1))
+    print(grafo.gera_mst(2))
+    print(grafo.gera_mst(3))
+    print(grafo.gera_mst(4))
 
 if len(arg1[0])==3 and temnegativo==1:
     # Se o grafo possuir pesos negativos, o algoritmo de Floyd-Warshall ou o algoritmo de Bellman-Ford
