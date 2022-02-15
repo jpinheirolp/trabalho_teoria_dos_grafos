@@ -50,16 +50,18 @@ class grafo_com_pesos():
                 if not vertices_explorados[vertice_atual]:
                     break 
             vertices_explorados[vertice_atual] = True
-            contador_explorados += 1
-            for vertice_vizinho in self.gera_vertices_adjacentes(vertice_origem):
+            contador_explorados -= 1
+            for vertice_vizinho in self.gera_vertices_adjacentes(vertice_atual):
+                if vertices_explorados[vertice_vizinho]:
+                    continue
                 peso_aresta = self.retorna_peso_aresta(vertice_atual,vertice_vizinho)
                 custo_vizinho = vetor_custos[vertice_vizinho]
                 if custo_vizinho > peso_aresta:
                     vetor_custos[vertice_vizinho] = peso_aresta
-                    vetor_arestas_leves[vertice_vizinho] = [vertice_atual,vertice_vizinho,peso_aresta]
-                    fila_prioridade.put((vetor_custos[vertice_vizinho],vertice_vizinho))
-                    if custo_vizinho < np.inf:
-                        custo_mst += peso_aresta - custo_vizinho
+                    vetor_arestas_leves[vertice_vizinho] = [vertice_atual,vertice_vizinho,peso_aresta] 
+                    fila_prioridade.put((vetor_custos[vertice_vizinho],vertice_vizinho)) 
+                    if custo_vizinho < np.inf: 
+                        custo_mst += peso_aresta - custo_vizinho 
                     else:
                         custo_mst += peso_aresta 
 
