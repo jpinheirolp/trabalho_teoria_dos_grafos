@@ -66,69 +66,10 @@ class grafo_com_pesos():
 
         return vetor_arestas_leves, custo_mst
 
-    '''
-    1. Dijkstra(Grafo, Vertice Origem)
-2. Para cada vértice v == lista de vertices
-    3. dist[v] = infinito
-    4. Define conjunto S = 0 // inicia vazio
-    5. dist[s] = 0
-    6. Enquanto S != V
-        7. Selecione u em V-S, tal que dist[u] é mínima3
-        8. Adicione u em S
-        9. Para cada vizinho v de u faça
-            10. Se dist[v] > dist[u] + w(u,v) então
-                11. dist[v] = dist[u] + w(u,v)4
-12.Retorna dist[]
-    vector<double> vetordistancias;
-    vector <Vertice> verticesPais;
-    vector <bool> verticesexplorados;
-    vector <Aresta> menorcaminho;
-    size_t  contadorexplorados=0;
 
-    for (Vertice &vertice:listadevertices){
-        vetordistancias.push_back(INFINITO);
-        verticesPais.push_back(Vertice("vazio"));
-        verticesexplorados.push_back(false);
-    }
-    vetordistancias[pegarIndiceVertice(verticeorigem)]=0;
-    int menorindex=pegarIndiceVertice(verticeorigem);
-    while (contadorexplorados!=listadevertices.size()){
-        double menordistancia=INFINITO;  
-        for (size_t  index=0;index<=listadevertices.size();index++){
-            if (verticesexplorados[index]==false&&menordistancia>vetordistancias[index]){
-                menordistancia=vetordistancias[index];
-                menorindex=index;
-                break;
-            }
-        }
-        Vertice verticeAtual=listadevertices[menorindex];
-        verticesexplorados[menorindex]=true;
-        contadorexplorados+=1;
-        vector<Vertice> listavizinhos=pegaListaAdjacenciaVertice(verticeAtual);
-        for (Vertice &vizinho:listavizinhos){
-            double peso_arestaVizinho=pegarAresta(verticeAtual,vizinho).getPeso();
-            
-            if ( vetordistancias[pegarIndiceVertice(vizinho)] > (vetordistancias[menorindex]+peso_arestaVizinho) ){
-                vetordistancias[pegarIndiceVertice(vizinho)]=vetordistancias[menorindex]+peso_arestaVizinho;
-                verticesPais[pegarIndiceVertice(vizinho)]=verticeAtual;
-            }
-        }
-        if (listadevertices[menorindex]==verticeDestino){
-            break;
-        } 
-         
-    }
-    Vertice verticepai;
-    Vertice verticefilho=verticeDestino;
-    while (!(verticepai==verticeorigem)){
-        verticepai=verticesPais[pegarIndiceVertice(verticefilho)];
-        menorcaminho.push_back(pegarAresta(verticepai,verticefilho));
-        verticefilho=verticepai;
-    }
-    return menorcaminho;
-    '''
-
-    def executa_dijkstra(self,vertice_origem,vertices_destino = []):
+    def executa_dijkstra(self,vertice_origem,vertices_destino = None):
+        if vertices_destino == None:
+            vertices_destino = []
         vetor_distancias = np.full(self.numero_vertices,np.inf)
         vetor_pais = np.full(self.numero_vertices,None)
         vertices_explorados = np.full(self.numero_vertices,False)
@@ -137,13 +78,13 @@ class grafo_com_pesos():
         resultado = []
         if len(vertices_destino) == 0:
             for i in range(self.numero_vertices):
-                vertices_destino.append(i)
+                if i != vertice_origem:
+                    vertices_destino.append(i)
 
         contador_explorados = self.numero_vertices
         vetor_distancias[vertice_origem] = 0
         vertice_atual = vertice_origem
         contador_destinos = 0
-        print("\n")
         while((contador_explorados > 0) and (contador_destinos < len(vertices_destino))):
             while not fila_prioridade.empty():
                 elemento_fila = fila_prioridade.get()
@@ -151,7 +92,7 @@ class grafo_com_pesos():
                 
                 if not vertices_explorados[vertice_atual]:
                     break 
-            print(vertice_atual)
+            
             vertices_explorados[vertice_atual] = True
             if vertice_atual in vertices_destino:
                 contador_destinos += 1
@@ -163,14 +104,11 @@ class grafo_com_pesos():
                     vetor_pais[vertice_vizinho] = vertice_atual
                     fila_prioridade.put((vetor_distancias[vertice_vizinho],vertice_vizinho))
         
-        print("acabou porra, acabou")
-        #print(vetor_pais)
 
         for vertice_destino in vertices_destino:
             menorcaminho = []
-            vertice_pai = 0
+            vertice_pai = None
             vertice_filho = vertice_destino
-            print(vertice_pai,vertice_origem)
             while (vertice_pai != vertice_origem):
                 vertice_pai = vetor_pais[vertice_filho]
                 menorcaminho.append([vertice_pai, vertice_filho, self.retorna_peso_aresta(vertice_pai,vertice_filho)])
