@@ -1,5 +1,4 @@
 from math import inf
-from pickle import FALSE
 import numpy as np
 import argparse
 import statistics
@@ -72,6 +71,8 @@ class grafo_com_pesos():
     def executa_dijkstra(self,vertice_origem,vertices_destino = None):
         if vertices_destino == None:
             vertices_destino = []
+        if vertice_origem in vertices_destino:
+            return [vertice_destino, 0, []]
         vetor_distancias = np.full(self.numero_vertices,np.inf)
         vetor_pais = np.full(self.numero_vertices,None)
         vertices_explorados = np.full(self.numero_vertices,False)
@@ -104,14 +105,13 @@ class grafo_com_pesos():
                 if vetor_distancias[vertice_vizinho] > (vetor_distancias[vertice_atual] + peso_aresta):
                     vetor_distancias[vertice_vizinho] = vetor_distancias[vertice_atual] + peso_aresta
                     vetor_pais[vertice_vizinho] = vertice_atual
-                    fila_prioridade.put((vetor_distancias[vertice_vizinho],vertice_vizinho))
-        
-
+                    fila_prioridade.put((vetor_distancias[vertice_vizinho],vertice_vizinho))            
         for vertice_destino in vertices_destino:
             menorcaminho = []
             vertice_pai = None
             vertice_filho = vertice_destino
             while (vertice_pai != vertice_origem):
+                #print("debug",vertice_origem,vertice_filho,vetor_pais[vertice_filho])
                 vertice_pai = vetor_pais[vertice_filho]
                 menorcaminho.append([vertice_pai, vertice_filho, self.retorna_peso_aresta(vertice_pai,vertice_filho)])
                 vertice_filho=vertice_pai
@@ -123,6 +123,8 @@ class grafo_com_pesos():
     def executa_bellman_ford(self,vertice_destino,vertices_origem=None):
         if vertices_origem == None:
             vertices_origem = []
+        if vertice_destino in vertices_origem:
+            return [vertice_destino, 0, []]
         vetor_distancias = np.full(self.numero_vertices,np.inf)
         vetor_distancias[vertice_destino] = 0
         vetor_pais = np.full(self.numero_vertices,None)
@@ -152,7 +154,6 @@ class grafo_com_pesos():
                 print("grafo possui ciclo negativo")
                 self.ciclo_negativo = True
                 return []
-        print("\n cabou",vetor_distancias)
         
         for vertice_origem in vertices_origem:
             menorcaminho = []
@@ -333,8 +334,7 @@ class grafo_matriz_esparsa_peso(grafo_com_pesos):
                 print("aresta não pode ir de um vertice para ele mesmo")
             if ((aresta[0],aresta[1]) in self.esparsa) or ((aresta[1],aresta[0]) in self.esparsa):
                 print("Aresta "+str(aresta)+"já existe no grafo")
-                return None
-            
+                continue
             self.esparsa.update({(aresta[0],aresta[1]):aresta[2]}) 
             self.esparsa.update({(aresta[1],aresta[0]):aresta[2]}) 
             
@@ -360,7 +360,7 @@ class grafo_matriz_adjacencia(grafo_sem_pesos):
                 print("aresta não pode ir de um vertice para ele mesmo")
             if (self.matriz[aresta[0]][aresta[1]] == 1 or self.matriz[aresta[1]][aresta[0]] == 1):
                 print("Aresta "+str(aresta)+"já existe no grafo")
-                return None
+                continue
             self.matriz[aresta[0]][aresta[1]] = 1
             self.matriz[aresta[1]][aresta[0]] = 1
             
@@ -385,8 +385,7 @@ class grafo_matriz_esparsa(grafo_sem_pesos):
                 print("aresta não pode ir de um vertice para ele mesmo")
             if ((aresta[0],aresta[1]) in self.esparsa) or ((aresta[1],aresta[0]) in self.esparsa):
                 print("Aresta "+str(aresta)+"já existe no grafo")
-                continue
-
+                return None
             self.esparsa.add((aresta[0],aresta[1])) 
             self.esparsa.add((aresta[1],aresta[0])) 
             
@@ -433,7 +432,7 @@ class grafo_lista_adjacencia(grafo_sem_pesos):
                 print("aresta não pode ir de um vertice para ele mesmo")
             if (aresta[1] in self.lista_adjacencias[aresta[0]] or aresta[0] in self.lista_adjacencias[aresta[1]]):
                 print("Aresta "+str(aresta)+"já existe no grafo")
-                return None
+                continue
             self.lista_adjacencias[aresta[0]].append(aresta[1])
             self.lista_adjacencias[aresta[1]].append(aresta[0])
             
@@ -544,9 +543,6 @@ def processarArquivoSaida(grafo,arquivosaida):
     f.write("Tamanho da Maior Componente Conexa:"+str(componentes_conexas[0][0])+"\n")
     f.write("Tamanho da Menor Componente Conexa:"+str(componentes_conexas[-1][0])+"\n")
     f.close()
-def processarArquivoSaidaTrabalho2(grafo,arquivosaida):
-    f = open(arquivosaida, "a")
-    f.close()
 ### Debug
 # matrizteste=grafo_matriz_adjacencia(arg1,arg2)
 # listateste = grafo_lista_adjacencia(arg1,arg2)
@@ -560,19 +556,70 @@ def processarArquivoSaidaTrabalho2(grafo,arquivosaida):
 # ##########
 #
 
-#cleanfilename=args.inputfile.split("/")[-1]
-arg1,arg2,temnegativo = processarArquivoEntrada('arquivo_teste_peso.txt')
+def processarArquivoSaidaTrabalho2(arestasmst,pesomst,arquivosaida):
+    f = open(arquivosaida, "a")
+    vertices_mst=set()
+    f.write(str(pesomst))
+    for i in arestasmst:
+        print(i)
+        f.write(str(i[0]),str(i[1]),str(i[2]))
+        if i[0] not in vertices_mst:
+            vertices_mst.add(i[0])
+        if i[1] not in vertices_mst:
+            vertices_mst.add(i[1])
+    f.write(str(len(vertices_mst)))
+    # O arquivo é printado ao contrario isso eh, a primeira linha é o peso da mst
+    # x linhas de arestas
+    # Ultima linha é o numero de vertices da mst
+    f.close()
+
+
+
+cleanfilename=args.inputfile.split("/")[-1]
+arquivosaidaname=cleanfilename+"-mst.txt"
+
+arg1,arg2,temnegativo = processarArquivoEntrada(cleanfilename)
 if len(arg1[0])==3 and temnegativo==0:
-    grafo=grafo_matriz_esparsa_peso(arg1,arg2)
     # Se o grafo possuir pesos nao negativos, o algoritmo de Dijkstra deve ser utilizado
+    grafo=grafo_matriz_esparsa_peso(arg1,arg2)
+    #start = timer()
+    #for i in range(100):
+    #    grafo.executa_dijkstra(random.randint(0,(grafo.numero_vertices-1)))
+    #end = timer()
+    #somatempo=end-start
+    #distancia1_10=grafo.executa_dijkstra(0,[9])[0][1]
+    #distancia1_20=grafo.executa_dijkstra(0,[19])[0][1]
+    #distancia1_30=grafo.executa_dijkstra(0,[29])[0][1]
+    #distancia1_40=grafo.executa_dijkstra(0,[39])[0][1]
+    #distancia1_50=grafo.executa_dijkstra(0,[49])[0][1]
+    print(grafo.gera_mst())
+    arestasmst,pesomst=grafo.gera_mst()
     
+    
+    processarArquivoSaidaTrabalho2(arestasmst,pesomst,arquivosaidaname)
+
+    print("{};{};{};{};{};{};{};{}".format(cleanfilename, (somatempo/100),distancia1_10,distancia1_20,distancia1_30,distancia1_40,distancia1_50,pesomst))  
+   
 
 if len(arg1[0])==3 and temnegativo==1:
     # Se o grafo possuir pesos negativos, o algoritmo de Floyd-Warshall ou o algoritmo de Bellman-Ford
     grafo=grafo_matriz_esparsa_peso(arg1,arg2)
-    grafo.executa_bellman_ford(0)
-    print(grafo.gera_mst(0))
+    start = timer()
+    for i in range(100):
+        grafo.executa_bellman_ford(random.randint(0,(grafo.numero_vertices-1)))
+    end = timer()
+    somatempo=end-start
     
+    distancia1_10=grafo.executa_bellman_ford(0,[9])[0][1]
+    distancia1_20=grafo.executa_bellman_ford(0,[19])[0][1]
+    distancia1_30=grafo.executa_bellman_ford(0,[29])[0][1]
+    distancia1_40=grafo.executa_bellman_ford(0,[39])[0][1]
+    distancia1_50=grafo.executa_bellman_ford(0,[49])[0][1]
+    
+    arestasmst,pesomst=grafo.gera_mst()
+    processarArquivoSaidaTrabalho2(arestasmst,pesomst,arquivosaidaname)
+
+    print("{};{};{};{};{};{};{};{}".format(cleanfilename, (somatempo/100),distancia1_10,distancia1_20,distancia1_30,distancia1_40,distancia1_50,pesomst))  
 
 if len(arg1[0])==2:
     # nao possuir pesos, o algoritmo de busca em largura deve ser utilizado
