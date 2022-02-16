@@ -130,7 +130,8 @@ class grafo_com_pesos():
         resultado = []
         if len(vertices_origem ) == 0:
             for i in range(self.numero_vertices):
-                vertices_origem.append(i)
+                if i != vertice_destino:
+                    vertices_origem.append(i)
 
         while tamanho_menor_caminho < self.numero_vertices:
     
@@ -152,10 +153,10 @@ class grafo_com_pesos():
                 self.ciclo_negativo = True
                 return []
         print("\n cabou",vetor_distancias)
-        return vetor_pais
+        
         for vertice_origem in vertices_origem:
             menorcaminho = []
-            vertice_pai = 0
+            vertice_pai = None
             vertice_filho = vertice_origem
             while (vertice_pai != vertice_destino):
                 vertice_pai = vetor_pais[vertice_filho]
@@ -570,11 +571,8 @@ if len(arg1[0])==3 and temnegativo==1:
     # Se o grafo possuir pesos negativos, o algoritmo de Floyd-Warshall ou o algoritmo de Bellman-Ford
     grafo=grafo_matriz_esparsa_peso(arg1,arg2)
     grafo.executa_bellman_ford(0)
-    print(grafo.executa_bellman_ford(0))
-    print(grafo.executa_bellman_ford(1))
-    print(grafo.executa_bellman_ford(2))
-    print(grafo.executa_bellman_ford(3))
-    print(grafo.executa_bellman_ford(4))
+    print(grafo.gera_mst(0))
+    
 
 if len(arg1[0])==2:
     # nao possuir pesos, o algoritmo de busca em largura deve ser utilizado
