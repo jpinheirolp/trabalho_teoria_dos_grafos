@@ -132,22 +132,27 @@ class grafo_com_pesos():
             for i in range(self.numero_vertices):
                 vertices_origem.append(i)
 
-        while tamanho_menor_caminho <= self.numero_vertices:
+        while tamanho_menor_caminho < self.numero_vertices:
+    
             houve_alteracao = False
             for vertice_atual in range(self.numero_vertices):
+                #print(vetor_distancias)
                 for vertice_vizinho in self.gera_vertices_adjacentes(vertice_atual):
                     nova_distancia = self.retorna_peso_aresta(vertice_atual,vertice_vizinho) + vetor_distancias[vertice_vizinho]
-                    if vetor_distancias[vertice_atual] > nova_distancia:
-                        vertice_atual = nova_distancia
+                    if (vetor_distancias[vertice_atual] > nova_distancia) and (vertice_atual != vetor_pais[vertice_vizinho]):
+                        vetor_distancias[vertice_atual] = nova_distancia
                         vetor_pais[vertice_atual] = vertice_vizinho
                         houve_alteracao = True
-            if houve_alteracao:
+            if not houve_alteracao:
                 break
-        if tamanho_menor_caminho == self.numero_vertices:
-            print("grafo possui ciclo negativo")
-            self.ciclo_negativo = True
-            return []
+            tamanho_menor_caminho += 1
 
+        if tamanho_menor_caminho >= self.numero_vertices:
+                print("grafo possui ciclo negativo")
+                self.ciclo_negativo = True
+                return []
+        print("\n cabou",vetor_distancias)
+        return vetor_pais
         for vertice_origem in vertices_origem:
             menorcaminho = []
             vertice_pai = 0
@@ -559,16 +564,18 @@ arg1,arg2,temnegativo = processarArquivoEntrada('arquivo_teste_peso.txt')
 if len(arg1[0])==3 and temnegativo==0:
     grafo=grafo_matriz_esparsa_peso(arg1,arg2)
     # Se o grafo possuir pesos nao negativos, o algoritmo de Dijkstra deve ser utilizado
-    print(grafo.gera_mst(0))
-    print(grafo.gera_mst(1))
-    print(grafo.gera_mst(2))
-    print(grafo.gera_mst(3))
-    print(grafo.gera_mst(4))
+    
 
 if len(arg1[0])==3 and temnegativo==1:
     # Se o grafo possuir pesos negativos, o algoritmo de Floyd-Warshall ou o algoritmo de Bellman-Ford
     grafo=grafo_matriz_esparsa_peso(arg1,arg2)
-    grafo.executa_bellman_ford()
+    grafo.executa_bellman_ford(0)
+    print(grafo.executa_bellman_ford(0))
+    print(grafo.executa_bellman_ford(1))
+    print(grafo.executa_bellman_ford(2))
+    print(grafo.executa_bellman_ford(3))
+    print(grafo.executa_bellman_ford(4))
+
 if len(arg1[0])==2:
     # nao possuir pesos, o algoritmo de busca em largura deve ser utilizado
     grafo=grafo_matriz_adjacencia(arg1,arg2)
