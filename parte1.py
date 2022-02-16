@@ -98,7 +98,7 @@ class grafo_com_pesos():
             vertices_explorados[vertice_atual] = True
             if vertice_atual in vertices_destino:
                 contador_destinos += 1
-            contador_explorados += 1
+            contador_explorados -= 1
             for vertice_vizinho in self.gera_vertices_adjacentes(vertice_atual):
                 peso_aresta = self.retorna_peso_aresta(vertice_atual,vertice_vizinho)
                 if vetor_distancias[vertice_vizinho] > (vetor_distancias[vertice_atual] + peso_aresta):
@@ -334,7 +334,7 @@ class grafo_matriz_esparsa_peso(grafo_com_pesos):
             if ((aresta[0],aresta[1]) in self.esparsa) or ((aresta[1],aresta[0]) in self.esparsa):
                 print("Aresta "+str(aresta)+"já existe no grafo")
                 return None
-            print(aresta)
+            
             self.esparsa.update({(aresta[0],aresta[1]):aresta[2]}) 
             self.esparsa.update({(aresta[1],aresta[0]):aresta[2]}) 
             
@@ -385,7 +385,7 @@ class grafo_matriz_esparsa(grafo_sem_pesos):
                 print("aresta não pode ir de um vertice para ele mesmo")
             if ((aresta[0],aresta[1]) in self.esparsa) or ((aresta[1],aresta[0]) in self.esparsa):
                 print("Aresta "+str(aresta)+"já existe no grafo")
-                return None
+                continue
 
             self.esparsa.add((aresta[0],aresta[1])) 
             self.esparsa.add((aresta[1],aresta[0])) 
