@@ -379,7 +379,7 @@ class grafo_lista_adjacencia_peso(grafo_com_pesos):
         gerador = self.lista_adjacencias[vertice1]       
         for vertice in gerador:
             if vertice[0] == vertice2:
-                return vertice[2]
+                return vertice[1]
 
 class grafo_matriz_adjacencia(grafo_sem_pesos):
     def __init__(self,arestas,numero_vertices):
@@ -452,7 +452,6 @@ class grafo_matriz_esparsa(grafo_sem_pesos):
             print(diametro[0],contador)
         return diametro[0]
 
-
 class grafo_lista_adjacencia(grafo_sem_pesos): 
     def __init__(self,arestas,numero_vertices):  
         self.numero_vertices = numero_vertices
@@ -473,8 +472,8 @@ class grafo_lista_adjacencia(grafo_sem_pesos):
             bisect.insort(self.lista_adjacencias[aresta[0]],aresta[1])
 
 
-            self.lista_graus[aresta[1]] += 1
-            self.lista_graus[aresta[0]] += 1
+            self.lista_graus[aresta[1]]+= 1
+            self.lista_graus[aresta[0]]+= 1
 
     def gera_vertices_adjacentes(self,vertice_origem,reverter = False):
         gerador = self.lista_adjacencias[vertice_origem]
@@ -576,7 +575,6 @@ def processarArquivoSaida(grafo,arquivosaida):
     f.write("Tamanho da Maior Componente Conexa:"+str(componentes_conexas[0][0])+"\n")
     f.write("Tamanho da Menor Componente Conexa:"+str(componentes_conexas[-1][0])+"\n")
     f.close()
-
 ### Debug
 # matrizteste=grafo_matriz_adjacencia(arg1,arg2)
 # listateste = grafo_lista_adjacencia(arg1,arg2)
@@ -593,15 +591,16 @@ def processarArquivoSaida(grafo,arquivosaida):
 def processarArquivoSaidaTrabalho2(arestasmst,pesomst,arquivosaida):
     f = open(arquivosaida, "a")
     vertices_mst=set()
-    f.write(str(pesomst))
+    f.write(str(pesomst)+"\n")
     for i in arestasmst:
-        print(i)
-        f.write(str(i[0]),str(i[1]),str(i[2]))
+        if len(i)==0:
+            continue
+        f.write(str(i[0])+" "+str(i[1])+" "+str(i[2])+"\n")
         if i[0] not in vertices_mst:
-            vertices_mst.add(i[0])
+           vertices_mst.add(i[0])
         if i[1] not in vertices_mst:
-            vertices_mst.add(i[1])
-    f.write(str(len(vertices_mst)))
+           vertices_mst.add(i[1])
+    f.write(str(len(vertices_mst))+"\n")
     # O arquivo é printado ao contrario isso eh, a primeira linha é o peso da mst
     # x linhas de arestas
     # Ultima linha é o numero de vertices da mst
@@ -615,22 +614,22 @@ arquivosaidaname=cleanfilename+"-mst.txt"
 arg1,arg2,temnegativo = processarArquivoEntrada(cleanfilename)
 if len(arg1[0])==3 and temnegativo==0:
     # Se o grafo possuir pesos nao negativos, o algoritmo de Dijkstra deve ser utilizado
-    grafo=grafo_matriz_esparsa_peso(arg1,arg2)
-    #start = timer()
-    #for i in range(100):
-    #    grafo.executa_dijkstra(random.randint(0,(grafo.numero_vertices-1)))
-    #end = timer()
-    #somatempo=end-start
-    #distancia1_10=grafo.executa_dijkstra(0,[9])[0][1]
-    #distancia1_20=grafo.executa_dijkstra(0,[19])[0][1]
-    #distancia1_30=grafo.executa_dijkstra(0,[29])[0][1]
-    #distancia1_40=grafo.executa_dijkstra(0,[39])[0][1]
-    #distancia1_50=grafo.executa_dijkstra(0,[49])[0][1]
-    print(grafo.gera_mst())
+    grafo=grafo_lista_adjacencia_peso(arg1,arg2)
+    start = timer()
+    for i in range(1):
+       grafo.executa_dijkstra(random.randint(0,(grafo.numero_vertices-1)))
+    end = timer()
+    somatempo=end-start
+    distancia1_10=grafo.executa_dijkstra(0,[9])[0][1]
+    distancia1_20=grafo.executa_dijkstra(0,[19])[0][1]
+    distancia1_30=grafo.executa_dijkstra(0,[29])[0][1]
+    distancia1_40=grafo.executa_dijkstra(0,[39])[0][1]
+    distancia1_50=grafo.executa_dijkstra(0,[49])[0][1]
     arestasmst,pesomst=grafo.gera_mst()
     
+    print("uau",somatempo/100)
     
-    processarArquivoSaidaTrabalho2(arestasmst,pesomst,arquivosaidaname)
+    #processarArquivoSaidaTrabalho2(arestasmst,pesomst,arquivosaidaname)
 
     print("{};{};{};{};{};{};{};{}".format(cleanfilename, (somatempo/100),distancia1_10,distancia1_20,distancia1_30,distancia1_40,distancia1_50,pesomst))  
    
