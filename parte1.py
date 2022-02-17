@@ -349,6 +349,38 @@ class grafo_matriz_esparsa_peso(grafo_com_pesos):
     def retorna_peso_aresta(self,vertice1,vertice2):
         return self.esparsa[(vertice1,vertice2)]
 
+class grafo_lista_adjacencia_peso(grafo_com_pesos): 
+    def __init__(self,arestas,numero_vertices):  
+        self.numero_vertices = numero_vertices
+        self.numero_arestas = len(arestas)
+        self.lista_adjacencias = []
+        for lista in range(self.numero_vertices):self.lista_adjacencias.append([])
+        self.lista_graus = np.zeros(numero_vertices)
+        for aresta in arestas:
+            if aresta[0] == aresta[1]:
+                print("aresta não pode ir de um vertice para ele mesmo")
+            if (aresta[1] in self.lista_adjacencias[aresta[0]] or aresta[0] in self.lista_adjacencias[aresta[1]]):
+                print("Aresta "+str(aresta)+"já existe no grafo")
+                continue
+            self.lista_adjacencias[aresta[0]].append([aresta[1],aresta[2]])
+            self.lista_adjacencias[aresta[1]].append([aresta[0],aresta[2]])
+            
+            #bisect.insort(self.lista_adjacencias[aresta[1]],aresta[0])
+            #bisect.insort(self.lista_adjacencias[aresta[0]],aresta[1])
+
+
+    def gera_vertices_adjacentes(self,vertice_origem,reverter = False):
+        gerador = self.lista_adjacencias[vertice_origem]
+        if reverter: gerador = gerador[::-1]        
+        for vertice in gerador:
+            yield vertice[0]
+
+    def retorna_peso_aresta(self,vertice1,vertice2):
+        gerador = self.lista_adjacencias[vertice1]       
+        for vertice in gerador:
+            if vertice[0] == vertice2:
+                return vertice[2]
+
 class grafo_matriz_adjacencia(grafo_sem_pesos):
     def __init__(self,arestas,numero_vertices):
         self.numero_vertices = numero_vertices
@@ -420,6 +452,7 @@ class grafo_matriz_esparsa(grafo_sem_pesos):
             print(diametro[0],contador)
         return diametro[0]
 
+
 class grafo_lista_adjacencia(grafo_sem_pesos): 
     def __init__(self,arestas,numero_vertices):  
         self.numero_vertices = numero_vertices
@@ -440,8 +473,8 @@ class grafo_lista_adjacencia(grafo_sem_pesos):
             bisect.insort(self.lista_adjacencias[aresta[0]],aresta[1])
 
 
-            self.lista_graus[aresta[1]]+= 1
-            self.lista_graus[aresta[0]]+= 1
+            self.lista_graus[aresta[1]] += 1
+            self.lista_graus[aresta[0]] += 1
 
     def gera_vertices_adjacentes(self,vertice_origem,reverter = False):
         gerador = self.lista_adjacencias[vertice_origem]
@@ -543,6 +576,7 @@ def processarArquivoSaida(grafo,arquivosaida):
     f.write("Tamanho da Maior Componente Conexa:"+str(componentes_conexas[0][0])+"\n")
     f.write("Tamanho da Menor Componente Conexa:"+str(componentes_conexas[-1][0])+"\n")
     f.close()
+
 ### Debug
 # matrizteste=grafo_matriz_adjacencia(arg1,arg2)
 # listateste = grafo_lista_adjacencia(arg1,arg2)
