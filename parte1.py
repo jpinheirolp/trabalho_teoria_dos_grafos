@@ -456,7 +456,7 @@ class grafo_lista_adjacencia_peso_direcionado(grafo_com_pesos):
             if vertice[0] == vertice2:
                 return vertice[1]
 
-
+    
 class grafo_matriz_adjacencia(grafo_sem_pesos):
     def __init__(self, arestas, numero_vertices):
         self.numero_vertices = numero_vertices
@@ -727,6 +727,9 @@ if len(arg1[0]) == 3 and temnegativo == 0:
     for i in range(1):
         grafo.executa_dijkstra(random.randint(0, (grafo.numero_vertices-1)))
         print(str(i)+"%")
+        end = timer()
+        somatempo = end-start
+        print(somatempo/(i+1))
     end = timer()
     somatempo = end-start
     distancia1_10 = grafo.executa_dijkstra(0, [9])[0][1]
@@ -752,18 +755,22 @@ if len(arg1[0]) == 3 and temnegativo == 1:
         grafo.executa_bellman_ford(
             random.randint(0, (grafo.numero_vertices-1)))
         print(str(i)+"%")
+        end = timer()
+        somatempo = end-start
+        print(somatempo/(i+1))
     end = timer()
     somatempo = end-start
 
-    print(grafo.executa_bellman_ford(3,[2])[0][1])
+    print(somatempo/100)
 
-    # distancia1_10=grafo.executa_bellman_ford(0,[9])[0][1]
-    # distancia1_20=grafo.executa_bellman_ford(0,[19])[0][1]
-    # distancia1_30=grafo.executa_bellman_ford(0,[29])[0][1]
-    # distancia1_40=grafo.executa_bellman_ford(0,[39])[0][1]
-    # distancia1_50=grafo.executa_bellman_ford(0,[49])[0][1]
+    distancia1_10=grafo.executa_bellman_ford(0,[9])[0][1]
+    distancia1_20=grafo.executa_bellman_ford(0,[19])[0][1]
+    distancia1_30=grafo.executa_bellman_ford(0,[29])[0][1]
+    distancia1_40=grafo.executa_bellman_ford(0,[39])[0][1]
+    distancia1_50=grafo.executa_bellman_ford(0,[49])[0][1]
 
-    # arestasmst,pesomst=grafo.gera_mst()
+    #arestasmst,pesomst=grafo.gera_mst()
+    pesomst = "no mst"
     # processarArquivoSaidaTrabalho2(arestasmst,pesomst,arquivosaidaname)
 
     print("{};{};{};{};{};{};{};{}".format(cleanfilename, (somatempo/100), distancia1_10,
